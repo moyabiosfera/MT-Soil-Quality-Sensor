@@ -32,6 +32,18 @@ via MQTT at a fixed frequency, measuring soil temperature and moisture using a D
 #define SDA_PIN 21
 #define SCL_PIN 22
 #define PMU_IRQ_PIN 35                                                                                           // PEK (PWR) button interrupt pin on T-Beam
+// Serial Monitor macros -------------------------------------------------------------------------------------------------------------------------------------
+#define ENABLE_SERIAL true
+
+#if ENABLE_SERIAL
+  #define Debug(x)    Serial.print(x)
+  #define Debugln(x)  Serial.println(x)
+  #define Debugf(...) Serial.printf(__VA_ARGS__)
+#else
+  #define Debug(x)
+  #define Debugln(x)
+  #define Debugf(...)
+#endif
 // MACROS END ================================================================================================================================================
 
 // ===========================================================================================================================================================
@@ -46,10 +58,10 @@ static AXP20X_Class axp;
 // GLOBAL VARIABLES
 // ===========================================================================================================================================================
 // Constants -------------------------------------------------------------------------------------------------------------------------------------------------
-// const char* ssid = "DIGIFIBRA-24-h3JA";
-// const char* password = "edaXG9qJA6";
-static const char* ssid = "Pixel_OF13";
-static const char* password = "mynameisjeff";
+static const char* ssid = "DIGIFIBRA-24-h3JA";
+static const char* password = "edaXG9qJA6";
+// static const char* ssid = "Pixel_OF13";
+// static const char* password = "mynameisjeff";
 static const char* mqtt_server = "srv-iot.diatel.upm.es";                                                        // Broker MQTT de la UPM
 static const int mqtt_port = 8883;                                                                               // Puerto del Broker MQTT
 static const char* mqttTopicPub = "v1/devices/me/telemetry";
@@ -92,7 +104,6 @@ jjxDah2nGN59PRbxYvnKkKj9
 -----END CERTIFICATE-----)EOF";                                                                                  // Certificado para el cifrado TLS de MQTT en Thingsboard
 
 static const uint64_t SLEEP_DURATION_US = 30ULL * 1000000;                                                       // Sleep time between messages
-
 // Variables -------------------------------------------------------------------------------------------------------------------------------------------------
 static bool ledState = LOW;
 static RTC_DATA_ATTR uint32_t bootCount = 0;
@@ -111,18 +122,25 @@ static void checkPEKPress();
 // SETUP FUNCTION
 // ===========================================================================================================================================================
 void setup() {
-  Serial.begin(115200);
-  Serial.println(F("Soil Quality Sensor Alpha"));
+  #if ENABLE_SERIAL
+    Serial.begin(115200);
+  #endif
+
+  Debugln(F("Soil Quality Sensor Alpha"));
 
   // AXP192 setup --------------------------------------------------------------------------------------------------------------------------------------------
   Wire.begin(SDA_PIN, SCL_PIN);                                                                                  // Initialize I2C bus
   
   if(axp.begin(Wire, AXP192_SLAVE_ADDRESS) != 0){                                                                // "AXP192_SLAVE_ADDRESS" should be "0x34"
-    Serial.println("AXP192 not detected!");
+    Debugln("AXP192 not detected!");
     while(1);
   }else{
-    Serial.println("AXP192 detected.");
+    Debugln("AXP192 detected.");
   }
+
+  axp.setPowerOutPut(AXP192_LDO2, AXP202_OFF);                                                                   // Turn off LoRa
+  axp.setPowerOutPut(AXP192_LDO3, AXP202_OFF);                                                                   // Disable GPS power
+  Debugln(F("GPS and LoRa powered off"));
 
   axp.adc1Enable(AXP202_BATT_VOL_ADC1, true);                                                                    // Enable ADC for battery voltage
 
@@ -135,7 +153,7 @@ void setup() {
   pinMode(LED_PIN, OUTPUT);
   digitalWrite(LED_PIN, ledState);
 
-  esp_sleep_enable_ext0_wakeup(BUTTON_PIN, 0);
+  esp_sleep_enable_ext0_wakeup(BUTTON_PIN, 0);                                                                   // Enable deep sleep interrupt using builtin button
 
   connectToWiFi();
   setupOTA();
@@ -172,14 +190,14 @@ void loop() {
             (unsigned long)bootCount, soilTemp, soilMoist, batVolt);                                             // La funcion 'sprintf' de C++ se usa para poder introducir las medidas y elegir el ancho de numero y su precision. Las medidas se separan con una coma ','
     
     if(mqttClient.publish(mqttTopicPub, dataStr)){                                                               // Se publica el string con los datos de los sensores en el topico 'moya/sensores'
-      Serial.println(dataStr);                                                                                   // Muestra en el serial de Arduino el string
-      Serial.println(F("Going to sleep until next TX..."));
+      Debugln(dataStr);                                                                                          // Muestra en el serial de Arduino el string
+      Debugln(F("Going to sleep until next TX..."));
       bootCount++;
 
       esp_sleep_enable_timer_wakeup(SLEEP_DURATION_US);                                                          // Temporizar el deep sleep durante el tiempo establecido
       esp_deep_sleep_start();
     }else{
-      Serial.println(F("Failed to publish data"));
+      Debugln(F("Failed to publish data"));
     }
     // MQTT PUBLISH END --------------------------------------------------------------------------------------------------------------------------------------
   }
@@ -195,14 +213,14 @@ void loop() {
 static void reconnectToMQTT() {
   while(!mqttClient.connected()){                                                                                // Loop until we're reconnected
     checkPEKPress();
-    Serial.print(F("Attempting MQTT connection..."));
+    Debug(F("Attempting MQTT connection..."));
 
     if(mqttClient.connect("soil_quaity_sensor", access_token, NULL)){                                            // Attempt to connect
-      Serial.println(F("connected"));
+      Debugln(F("connected"));
     }else{
-      Serial.print(F("failed, rc="));
-      Serial.print(mqttClient.state());
-      Serial.println(F(" try again in 5 seconds"));
+      Debug(F("failed, rc="));
+      Debug(mqttClient.state());
+      Debugln(F(" try again in 5 seconds"));
 
       delay(5000);                                                                                               // Wait 5 seconds before retrying
     }
@@ -212,8 +230,8 @@ static void reconnectToMQTT() {
 
 // CONNECT TO WIFI -------------------------------------------------------------------------------------------------------------------------------------------
 static void connectToWiFi(){
-  Serial.print("Connecting to WIFI SSID ");
-  Serial.println(ssid);
+  Debug(F("Connecting to WIFI SSID "));
+  Debugln(ssid);
 
   WiFi.mode(WIFI_STA);
   WiFi.disconnect();
@@ -222,17 +240,17 @@ static void connectToWiFi(){
 
   while(WiFi.status() != WL_CONNECTED){
     delay(500);
-    Serial.print(".");
+    Debug(".");
     ledState = !ledState;
     digitalWrite(LED_PIN, ledState);
 
     checkPEKPress();
   }
 
-  Serial.println("");
+  Debugln(F(""));
 
-  Serial.print(F("WiFi connected, IP address: "));
-  Serial.println(WiFi.localIP());
+  Debug(F("WiFi connected, IP address: "));
+  Debugln(WiFi.localIP());
 
   if(ledState){
     digitalWrite(LED_PIN, LOW);
@@ -246,7 +264,7 @@ static void checkPEKPress(){
     axp.readIRQ();
 
     if(axp.isPEKLongtPressIRQ()){
-      Serial.println("\t\t\tLong press detected: Shutting down...");
+      Debugln(F("\t\t\tLong press detected: Shutting down..."));
       axp.shutdown();
     }
 
@@ -257,7 +275,7 @@ static void checkPEKPress(){
 
 // SETUP OTA -------------------------------------------------------------------------------------------------------------------------------------------------
 static void setupOTA(){
-  ArduinoOTA.setHostname("esp32-ota-test");                                                                      // Set custom OTA hostname
+  ArduinoOTA.setHostname("soil-quality-sensor");                                                                 // Set custom OTA hostname
   ArduinoOTA.setPassword("pw0123");                                                                              // No authentication by default
   
   ArduinoOTA
@@ -269,26 +287,26 @@ static void setupOTA(){
         type = "filesystem";
 
       // NOTE: if updating SPIFFS this would be the place to unmount SPIFFS using SPIFFS.end()
-      Serial.println("Start updating " + type);
+      Debugln(String(F("Start updating ")) + type);
     })
     .onEnd([]() {
-      Serial.println("\nEnd");
+      Debugln(F("\nEnd"));
     })
     .onProgress([](unsigned int progress, unsigned int total) {
-      Serial.printf("Progress: %u%%\r", (progress / (total / 100)));
+      Debugf("Progress: %u%%\r", (progress / (total / 100)));
     })
     .onError([](ota_error_t error) {
-      Serial.printf("Error[%u]: ", error);
-      if (error == OTA_AUTH_ERROR) Serial.println("Auth Failed");
-      else if (error == OTA_BEGIN_ERROR) Serial.println("Begin Failed");
-      else if (error == OTA_CONNECT_ERROR) Serial.println("Connect Failed");
-      else if (error == OTA_RECEIVE_ERROR) Serial.println("Receive Failed");
-      else if (error == OTA_END_ERROR) Serial.println("End Failed");
+      Debugf("Error[%u]: ", error);
+      if (error == OTA_AUTH_ERROR) Debugln(F("Auth Failed"));
+      else if (error == OTA_BEGIN_ERROR) Debugln(F("Begin Failed"));
+      else if (error == OTA_CONNECT_ERROR) Debugln(F("Connect Failed"));
+      else if (error == OTA_RECEIVE_ERROR) Debugln(F("Receive Failed"));
+      else if (error == OTA_END_ERROR) Debugln(F("End Failed"));
     });
 
   ArduinoOTA.begin();
 
-  Serial.println("OTA service started!");
+  Debugln(F("OTA service started!"));
 }
 // SETUP OTA END ---------------------------------------------------------------------------------------------------------------------------------------------
 // AUXILIARY FUNCTIONS END ===================================================================================================================================
