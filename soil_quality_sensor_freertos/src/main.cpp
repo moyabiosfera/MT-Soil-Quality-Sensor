@@ -58,56 +58,34 @@ static AXP20X_Class axp;
 // GLOBAL VARIABLES
 // ===========================================================================================================================================================
 // Constants -------------------------------------------------------------------------------------------------------------------------------------------------
-static const char* ssid = "DIGIFIBRA-24-h3JA";
-static const char* password = "edaXG9qJA6";
-// static const char* ssid = "Pixel_OF13";
-// static const char* password = "mynameisjeff";
+static const char* ssid = "";
+static const char* password = "";
+// static const char* ssid = "";
+// static const char* password = "";
 static const char* mqtt_server = "srv-iot.diatel.upm.es";                                                        // UPM MQTT broker
 static const int mqtt_port = 8883;                                                                               // MQTT broker port
 static const char* mqttTopicPub = "v1/devices/me/telemetry";
 static const char* mqttTopicSub = "v1/devices/me/attributes";
-static const char* access_token = "c0ar6qni65ev6515q845";                                                        // Unique ThingsBoard device token
+static const char* access_token = "";                                                        // Unique ThingsBoard device token
 
 static const char* root_ca = R"EOF(-----BEGIN CERTIFICATE-----
-MIIF3jCCA8agAwIBAgIQAf1tMPyjylGoG7xkDjUDLTANBgkqhkiG9w0BAQwFADCB
-iDELMAkGA1UEBhMCVVMxEzARBgNVBAgTCk5ldyBKZXJzZXkxFDASBgNVBAcTC0pl
-cnNleSBDaXR5MR4wHAYDVQQKExVUaGUgVVNFUlRSVVNUIE5ldHdvcmsxLjAsBgNV
-BAMTJVVTRVJUcnVzdCBSU0EgQ2VydGlmaWNhdGlvbiBBdXRob3JpdHkwHhcNMTAw
-MjAxMDAwMDAwWhcNMzgwMTE4MjM1OTU5WjCBiDELMAkGA1UEBhMCVVMxEzARBgNV
-BAgTCk5ldyBKZXJzZXkxFDASBgNVBAcTC0plcnNleSBDaXR5MR4wHAYDVQQKExVU
-aGUgVVNFUlRSVVNUIE5ldHdvcmsxLjAsBgNVBAMTJVVTRVJUcnVzdCBSU0EgQ2Vy
-dGlmaWNhdGlvbiBBdXRob3JpdHkwggIiMA0GCSqGSIb3DQEBAQUAA4ICDwAwggIK
-AoICAQCAEmUXNg7D2wiz0KxXDXbtzSfTTK1Qg2HiqiBNCS1kCdzOiZ/MPans9s/B
-3PHTsdZ7NygRK0faOca8Ohm0X6a9fZ2jY0K2dvKpOyuR+OJv0OwWIJAJPuLodMkY
-tJHUYmTbf6MG8YgYapAiPLz+E/CHFHv25B+O1ORRxhFnRghRy4YUVD+8M/5+bJz/
-Fp0YvVGONaanZshyZ9shZrHUm3gDwFA66Mzw3LyeTP6vBZY1H1dat//O+T23LLb2
-VN3I5xI6Ta5MirdcmrS3ID3KfyI0rn47aGYBROcBTkZTmzNg95S+UzeQc0PzMsNT
-79uq/nROacdrjGCT3sTHDN/hMq7MkztReJVni+49Vv4M0GkPGw/zJSZrM233bkf6
-c0Plfg6lZrEpfDKEY1WJxA3Bk1QwGROs0303p+tdOmw1XNtB1xLaqUkL39iAigmT
-Yo61Zs8liM2EuLE/pDkP2QKe6xJMlXzzawWpXhaDzLhn4ugTncxbgtNMs+1b/97l
-c6wjOy0AvzVVdAlJ2ElYGn+SNuZRkg7zJn0cTRe8yexDJtC/QV9AqURE9JnnV4ee
-UB9XVKg+/XRjL7FQZQnmWEIuQxpMtPAlR1n6BB6T1CZGSlCBst6+eLf8ZxXhyVeE
-Hg9j1uliutZfVS7qXMYoCAQlObgOK6nyTJccBz8NUvXt7y+CDwIDAQABo0IwQDAd
-BgNVHQ4EFgQUU3m/WqorSs9UgOHYm8Cd8rIDZsswDgYDVR0PAQH/BAQDAgEGMA8G
-A1UdEwEB/wQFMAMBAf8wDQYJKoZIhvcNAQEMBQADggIBAFzUfA3P9wF9QZllDHPF
-Up/L+M+ZBn8b2kMVn54CVVeWFPFSPCeHlCjtHzoBN6J2/FNQwISbxmtOuowhT6KO
-VWKR82kV2LyI48SqC/3vqOlLVSoGIG1VeCkZ7l8wXEskEVX/JJpuXior7gtNn3/3
-ATiUFJVDBwn7YKnuHKsSjKCaXqeYalltiz8I+8jRRa8YFWSQEg9zKC7F4iRO/Fjs
-8PRF/iKz6y+O0tlFYQXBl2+odnKPi4w2r78NBc5xjeambx9spnFixdjQg3IM8WcR
-iQycE0xyNN+81XHfqnHd4blsjDwSXWXavVcStkNr/+XeTWYRUc+ZruwXtuhxkYze
-Sf7dNXGiFSeUHM9h4ya7b6NnJSFd5t0dCy5oGzuCr+yDZ4XUmFF0sbmZgIn/f3gZ
-XHlKYC6SQK5MNyosycdiyA5d9zZbyuAlJQG03RoHnHcAP9Dc1ew91Pq7P8yF1m9/
-qS3fuQL39ZeatTXaw2ewh0qpKJ4jjv9cJ2vhsE/zB+4ALtRZh8tSQZXq9EfX7mRB
-VXyNWQKV3WKdwrnuWih0hKWbt5DHDAff9Yk2dDLWKMGwsAvgnEzDHNb842m1R0aB
-L6KCq9NjRHDEjf8tM7qtj3u1cIiuPhnPQCjY/MiQu12ZIvVS5ljFH4gxQ+6IHdfG
-jjxDah2nGN59PRbxYvnKkKj9
+
 -----END CERTIFICATE-----)EOF";                                                                                  // Certificate for MQTT over TLS on Thingsboard
 
 static const uint64_t SLEEP_DURATION_US = 30ULL * 1000000;                                                       // Sleep time between messages
 // Variables -------------------------------------------------------------------------------------------------------------------------------------------------
 static bool ledState = LOW;
-static RTC_DATA_ATTR uint32_t bootCount = 0;
+static volatile bool pekPressed = false;
+static RTC_DATA_ATTR uint32_t bootCount = 1;                                                                     // Boot counter must be stored in the RTC memory so it survives deep sleep, but not power-off
 // GLOBAL VARIABLES END ======================================================================================================================================
+
+// ===========================================================================================================================================================
+// ISR
+// ===========================================================================================================================================================
+static void IRAM_ATTR handlePMUIRQ() {
+  pekPressed = true;
+}
+// ISR END ===================================================================================================================================================
 
 // ===========================================================================================================================================================
 // FUNCTION PROTOTYPES
@@ -212,10 +190,11 @@ static void MQTTTask(void *pvParameters){
 // PEK THREAD ------------------------------------------------------------------------------------------------------------------------------------------------
 static void PEKTask(void *pvParameters){
   while(true) {
-    if(digitalRead(PMU_IRQ_PIN) == LOW){                                                                           // Check for PEK button press
-      axp.readIRQ();
+    if(pekPressed){                                                                                                // Check for PEK press ISR flag
+      pekPressed = false;
+      axp.readIRQ();                                                                                               // The task checks the type of IRQ
 
-      if(axp.isPEKLongtPressIRQ()){
+      if(axp.isPEKLongtPressIRQ()){                                                                                // If the IRQ is long-press type, the device is switched off
         if(xSemaphoreTake(semaphoreSerial, portMAX_DELAY)){
           Debugln(F("Long press detected: Shutting down..."));
           xSemaphoreGive(semaphoreSerial);
@@ -240,16 +219,16 @@ void setup() {
     Serial.begin(115200);
   #endif
 
-  Debugln(F("Soil Quality Sensor Alpha"));
+  Debugln(F("Soil Quality Sensor Beta"));
 
   // AXP192 setup --------------------------------------------------------------------------------------------------------------------------------------------
   Wire.begin(SDA_PIN, SCL_PIN);                                                                                  // Initialize I2C bus
   
   if(axp.begin(Wire, AXP192_SLAVE_ADDRESS) != 0){                                                                // "AXP192_SLAVE_ADDRESS" should be "0x34"
-    Debugln("AXP192 not detected!");
+    Debugln(F("AXP192 not detected!"));
     while(1);
   }else{
-    Debugln("AXP192 detected.");
+    Debugln(F("AXP192 detected"));
   }
 
   axp.setPowerOutPut(AXP192_LDO2, AXP202_OFF);                                                                   // Turn off LoRa
@@ -261,7 +240,8 @@ void setup() {
   pinMode(PMU_IRQ_PIN, INPUT);                                                                                   // Set up PEK button IRQ pin
 
   axp.clearIRQ();                                                                                                // Clear any existing IRQs
-  axp.enableIRQ(AXP202_PEK_SHORTPRESS_IRQ | AXP202_PEK_LONGPRESS_IRQ, true);                                     // Enable PEK IRQs
+  axp.enableIRQ(AXP202_PEK_LONGPRESS_IRQ, true);                                                                 // Enable PEK IRQ for long press
+  attachInterrupt(digitalPinToInterrupt(PMU_IRQ_PIN), handlePMUIRQ, FALLING);                                    // Enable the interruption to notify the ESP32 to give access to execute the code to power off the device
   // AXP192 setup END ----------------------------------------------------------------------------------------------------------------------------------------
   
   pinMode(LED_PIN, OUTPUT);
